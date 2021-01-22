@@ -18,6 +18,7 @@ import logging
 
 import requests
 import requests.exceptions
+from requests_futures.sessions import FuturesSession
 
 from .errors import (APIError, ClientInteractionRequest, ConnectionError,
                      HTTPError, LoginError, RequestError, TimeoutError,
@@ -72,7 +73,7 @@ class Session:
             self.api_url = self.host + self.api_path
 
         self.timeout = float(timeout) if timeout is not None else None
-        self.session = session or requests.Session()
+        self.session = session or FuturesSession()
         for key, value in session_params.items():
             setattr(self.session, key, value)
 
@@ -104,13 +105,14 @@ class Session:
             params['format'] = "json"
 
         try:
-            resp = self.session.request(method, self.api_url, params=params,
+            resp_f = self.session.request(method, self.api_url, params=params,
                                         data=data, files=files,
                                         timeout=self.timeout,
                                         headers=self.headers,
                                         verify=True,
                                         stream=True,
                                         auth=auth)
+            resp = resp_f.result()
         except requests.exceptions.Timeout as e:
             raise TimeoutError(str(e)) from e
         except requests.exceptions.ConnectionError as e:
@@ -123,6 +125,8 @@ class Session:
             raise RequestError(str(e)) from e
         except Exception as e:
             raise RequestError(str(e)) from e
+
+
 
         try:
             doc = resp.json()

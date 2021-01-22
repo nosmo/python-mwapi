@@ -1,6 +1,6 @@
 import os.path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 about_path = os.path.join(os.path.dirname(__file__), "mwapi/about.py")
 exec(compile(open(about_path).read(), about_path, "exec"))
@@ -13,7 +13,7 @@ setup(
     description=__description__,  # noqa
     url=__url__,  # noqa
     license=__license__,  # noqa
-    packages=["mwapi"],
+    packages=find_packages(),
     long_description=open("README.md").read(),
-    install_requires=["requests"]
+    install_requires=["requests", "requests-futures"]
 )
